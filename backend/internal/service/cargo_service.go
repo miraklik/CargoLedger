@@ -25,19 +25,19 @@ func (c *CargoService) CreateCargo(cargo *cargo.Cargo) error {
 }
 
 func (c *CargoService) GetCargoById(id uint) (*cargo.Cargo, error) {
-	var cargo cargo.Cargo
-	if err := c.db.First(&cargo, id).Error; err != nil {
+	var cargos cargo.Cargo
+	if err := c.db.First(&cargos, id).Error; err != nil {
 		logger.Log.Errorf("Error getting cargo: %v", err)
 		return nil, err
 	}
 
 	logger.Log.Infof("Cargo with id %d found successfully", id)
-	return &cargo, nil
+	return &cargos, nil
 }
 
 func (c *CargoService) CargoUpdateStatus(id uint, status cargo.CargoStatus) error {
-	var cargo cargo.Cargo
-	if err := c.db.Model(&cargo).Where("id = ?", id).Update("status", status).Error; err != nil {
+	var cargos cargo.Cargo
+	if err := c.db.Model(&cargos).Where("id = ?", id).Update("status", status).Error; err != nil {
 		logger.Log.Errorf("Error updating cargo status: %v", err)
 		return err
 	}
