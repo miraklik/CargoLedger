@@ -1,3 +1,4 @@
 package service
 
-//! Logic for reading logs and sending transactions
+// ! Logic for reading logs and sending transactions
+/

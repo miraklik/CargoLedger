@@ -10,10 +10,10 @@ import (
 )
 
 type CargoHandler struct {
-	CargoService *service.CargoService
+	CargoService service.CargoService
 }
 
-func NewCargoHandler(service *service.CargoService) *CargoHandler {
+func NewCargoHandler(service service.CargoService) *CargoHandler {
 	return &CargoHandler{
 		CargoService: service,
 	}
@@ -37,7 +37,7 @@ func (ch *CargoHandler) CreateCargo(c *gin.Context) {
 		Sender:              req.Sender,
 		Carrier:             req.Carrier,
 		Receiver:            req.Receiver,
-		DescriotionIpfsHash: req.DescriptionIpfsHash,
+		DescriptionIpfsHash: req.DescriptionIpfsHash,
 		Status:              req.Status,
 	}
 
@@ -54,7 +54,7 @@ func (ch *CargoHandler) CreateCargo(c *gin.Context) {
 
 func (ch *CargoHandler) UpdateCargo(c *gin.Context) {
 	var req struct {
-		status cargo.CargoStatus
+		Status cargo.CargoStatus `json:"status"`
 	}
 
 	id := c.Param("id")
@@ -70,7 +70,7 @@ func (ch *CargoHandler) UpdateCargo(c *gin.Context) {
 		return
 	}
 
-	if err := ch.CargoService.CargoUpdateStatus(uuid, req.status); err != nil {
+	if err := ch.CargoService.UpdateStatus(uuid, req.Status); err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
@@ -79,22 +79,20 @@ func (ch *CargoHandler) UpdateCargo(c *gin.Context) {
 }
 
 func (ch *CargoHandler) GetCargoById(c *gin.Context) {
-	var req struct {
-		id uint `uri:"id" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind request body: " + err.Error()})
+	idParam := c.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id: " + idParam})
 		return
 	}
 
-	cargos, err := ch.CargoService.GetCargoById(req.id)
+	cargos, err := ch.CargoService.GetById(uint(id))
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"Cargo": cargos,
+		"cargo": cargos,
 	})
 }

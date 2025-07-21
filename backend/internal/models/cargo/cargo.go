@@ -19,7 +19,7 @@ type Cargo struct {
 	Sender              common.Address `json:"sender"`
 	Carrier             common.Address `json:"carrier"`
 	Receiver            common.Address `json:"receiver"`
-	DescriotionIpfsHash string         `json:"descriptionIpfsHash"`
+	DescriptionIpfsHash string         `json:"descriptionIpfsHash"`
 	Status              CargoStatus    `json:"status"`
 	Timestamp           int64          `json:"timestamp"`
 }
