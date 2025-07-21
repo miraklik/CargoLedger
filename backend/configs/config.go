@@ -8,34 +8,40 @@ import (
 )
 
 type Config struct {
-	RPC struct {
-		Rpc string
-	}
+	Db  Database
+	Rpc RPC
+}
 
-	Database struct {
-		Db_host string
-		Db_user string
-		Db_pass string
-		Db_name string
-		Db_port string
-	}
+type RPC struct {
+	Rpc string
+}
+
+type Database struct {
+	Db_url string
 }
 
 func Load() (*Config, error) {
-	err := godotenv.Load()
-	if err != nil {
-		logger.Log.Errorf("Error loading .env file: %v", err)
-		return nil, err
+	_ = godotenv.Load()
+
+	cfg := &Config{
+		Db: Database{
+			Db_url: getEnv("DB_URL", ""),
+		},
+		Rpc: RPC{
+			Rpc: getEnv("RPC_URL", ""),
+		},
 	}
 
-	var cfg Config
-	cfg.RPC.Rpc = os.Getenv("INFURA_API")
+	return cfg, nil
+}
 
-	cfg.Database.Db_host = os.Getenv("DB_HOST")
-	cfg.Database.Db_user = os.Getenv("DB_USER")
-	cfg.Database.Db_pass = os.Getenv("DB_PASS")
-	cfg.Database.Db_name = os.Getenv("DB_NAME")
-	cfg.Database.Db_port = os.Getenv("DB_PORT")
-
-	return &cfg, nil
+func getEnv(key string, defaultVal string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		if defaultVal == "" {
+			logger.Log.Fatalf("Failed to get %s from environment", key)
+		}
+		return defaultVal
+	}
+	return val
 }
