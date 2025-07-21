@@ -1,0 +1,12 @@
+#IDE
+.idea
+
+#Binaries
+*.exe
+*.out
+
+#Configuration
+.env
+
+#logs
+*.log
