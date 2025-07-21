@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Db  Database
-	Rpc RPC
+	Db       Database
+	Rpc      RPC
+	Contract Contract
 }
 
 type RPC struct {
@@ -18,6 +19,10 @@ type RPC struct {
 
 type Database struct {
 	Db_url string
+}
+
+type Contract struct {
+	Contract_Address string
 }
 
 func Load() (*Config, error) {
@@ -29,6 +34,9 @@ func Load() (*Config, error) {
 		},
 		Rpc: RPC{
 			Rpc: getEnv("RPC_URL", ""),
+		},
+		Contract: Contract{
+			Contract_Address: getEnv("CONTRACT_ADDR", ""),
 		},
 	}
 
