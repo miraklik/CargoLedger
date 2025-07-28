@@ -5,9 +5,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/miraklik/CargoLedger/configs"
 	"github.com/miraklik/CargoLedger/internal/blockchain"
-	"github.com/miraklik/CargoLedger/internal/handler"
+	cargoHandler "github.com/miraklik/CargoLedger/internal/handler/cargo"
+	usersHandler "github.com/miraklik/CargoLedger/internal/handler/users"
 	"github.com/miraklik/CargoLedger/internal/logger"
-	"github.com/miraklik/CargoLedger/internal/service"
+	cargoService "github.com/miraklik/CargoLedger/internal/service/cargo"
+	"github.com/miraklik/CargoLedger/internal/service/logs"
+	usersService "github.com/miraklik/CargoLedger/internal/service/users"
 	"github.com/miraklik/CargoLedger/internal/storage"
 	"net/http"
 	"os"
@@ -35,27 +38,43 @@ func main() {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	cargoServices := service.NewCargoService(db)
-	cargoHandlers := handler.NewCargoHandler(cargoServices)
-	logs := service.NewLogService(db)
+
+	cargoServices := cargoService.NewCargoService(db)
+	cargoHandlers := cargoHandler.NewCargoHandler(*cargoServices)
+
+	userService := usersService.NewUserService(db)
+	userHandler := usersHandler.NewUserHandler(*userService)
+	loggers := logs.NewLogService(db)
 
 	contractAddr := string(cfg.Contract.Contract_Address)
 
 	go func() {
-		if err := logs.ListenLogs(ctx, client, contractAddr); err != nil {
+		if err := loggers.ListenLogs(ctx, client, contractAddr); err != nil {
 			logger.Log.Errorf("Log listener stopped with error: %v", err)
+			return
 		}
 	}()
 
 	r := gin.Default()
-	router := r.Group("/v1")
-	router.POST("/cargo", cargoHandlers.CreateCargo)
-	router.PUT("/cargo/:id", cargoHandlers.UpdateCargo)
-	router.GET("/cargo/:id", cargoHandlers.GetCargoById)
+	cargoGroup := r.Group("/cargo")
+	{
+		cargoGroup.POST("/", cargoHandlers.CreateCargo)
+		cargoGroup.PUT("/:id", cargoHandlers.UpdateCargo)
+		cargoGroup.GET("/:id", cargoHandlers.GetCargoById)
+	}
+
+	userGroup := r.Group("/user")
+	{
+		userGroup.POST("/", userHandler.CreateUser)
+		userGroup.GET("/:id", userHandler.GetUser)
+	}
 
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: r,
+		Addr:         ":8080",
+		Handler:      r,
+		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
 
 	go func() {

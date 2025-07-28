@@ -1,4 +1,4 @@
-package service
+package logs
 
 import (
 	"context"
@@ -24,7 +24,7 @@ func NewLogService(db *gorm.DB) *LogService {
 	return &LogService{db: db}
 }
 
-func (s *LogService) SaveEvent(eventType string, cargoID uint, txHash string, blockNumber uint64, index uint, sender string, rawData interface{}) error {
+func (s *LogService) SaveEvent(eventType string, cargoID uint, txHash string, blockNumber uint64, index uint, sender string, rawData any) error {
 	dataJSON, err := json.Marshal(rawData)
 	if err != nil {
 		return err
